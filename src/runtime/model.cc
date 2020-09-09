@@ -1032,7 +1032,7 @@ void FFModel::optimize(Simulator* simulator,
   for (size_t iter = 0; iter < budget; iter++) {
     rewrite(current, next);
     float next_runtime = simulator->simulate_runtime(this, next);
-    if (iter % 1 == 0) {
+    if (iter % 1000 == 0) {
       printf("iter(%zu) cur(%.2lf) next(%.2lf) best(%.2lf)\n", iter,
              current_runtime, next_runtime, best_runtime);
     }

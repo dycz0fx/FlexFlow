@@ -135,22 +135,27 @@ bool save_strategies_to_file(const std::string& filename,
     ParallelConfig config = it->second;
     switch (config.device_type) {
       case ParallelConfig::GPU:
+        printf("set_device_type:GPU\n");
         op->set_device_type(FFProtoBuf::Op_DeviceType_GPU);
         break;
       case ParallelConfig::CPU:
+        printf("set_device_type:CPU\n");
         op->set_device_type(FFProtoBuf::Op_DeviceType_CPU);
         break;
       default:
         fprintf(stderr, "Unsupported Device Type\n");
         assert(false);
     }
+    printf("set_name:%s\n", std::to_string(it->first));
     op->set_name(std::to_string(it->first));
     int n = 1;
     for (int j = 0; j < config.nDims; j++) {
       n = n * config.dim[j];
+      printf("add_dims:%d\n", config.dim[j]);
       op->add_dims(config.dim[j]);
     }
     for (int j = 0; j < n; j++) {
+      printf("add_device_ids:%d\n", config.device_ids[j]);
       op->add_device_ids(config.device_ids[j]);
     }
   }

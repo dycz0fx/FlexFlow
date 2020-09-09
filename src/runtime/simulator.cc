@@ -197,6 +197,41 @@ Device* Simulator::get_inter_node_comm_device_by_ids(int src_id,
   return ids_to_inter_node_comm_device[hash];
 }
 
+float Simulator::get_inter_nic_time(int src_id, int dst_id, int mes_size)
+{  
+  float ret = 0;
+  int pre_connection = connection[src_id][dst_id];
+  switch (connection[src_id][dst_id])
+  {
+  case 0:
+    for (int i = 0; i < SIM_TOTAL; i++) {
+      if (connection[src_id][i] == 2) {
+        connection[src_id][i] = 1;
+      }
+      else if (connection[src_id][i] == 1) {
+        connection[src_id][i] = 0;
+      }
+    }
+    connection[src_id][dst_id] = 2;
+    ret = 1;
+    break;
+  case 1:
+    for (int i = 0; i < SIM_TOTAL; i++) {
+      if (connection[src_id][i] == 2) {
+        connection[src_id][i] = 1;
+      }
+    }
+    connection[src_id][dst_id] = 2;
+  case 2:
+    break;
+  default:
+    printf("ERROR in get_inter_nic_time\n");
+    break;
+  }
+  // printf("[%d][%d]: pre_connection = %d latency = %f, bw = %f\n", src_id, dst_id, pre_connection, latency[src_id][dst_id], bandwidth[src_id][dst_id]);
+  return ret + latency[src_id][dst_id] + mes_size / bandwidth[src_id][dst_id];
+}
+
 void Simulator::add_task_dependencies_with_xfer(SimTask* src_task,
                                                 SimTask* dst_task,
                                                 size_t intersect)
@@ -221,7 +256,8 @@ void Simulator::add_task_dependencies_with_xfer(SimTask* src_task,
     SimTask* dram_to_dram = task_manager->new_comm_task();
     dram_to_dram->device = get_inter_node_comm_device_by_ids(src_task->device->node_id,
                                                              dst_task->device->node_id);
-    dram_to_dram->run_time = (float)intersect * sizeof(float) / dram_to_dram->device->bandwidth;
+    dram_to_dram->run_time = get_inter_nic_time(src_task->device->node_id, dst_task->device->node_id, 
+                                                (float)intersect * sizeof(float));
     SimTask* dram_to_gpu = task_manager->new_comm_task();
     dram_to_gpu->device = get_dram_to_gpu_comm_device_by_id(dst_task->device->gpu_id);
     dram_to_gpu->run_time = (float)intersect * sizeof(float) / dram_to_gpu->device->bandwidth;
@@ -275,6 +311,11 @@ float Simulator::measure_op_backward_time(Op* op, const ParallelConfig& config)
 float Simulator::simulate_runtime(const FFModel* model,
                                   const std::map<Op*, ParallelConfig>& global)
 {
+  for (int i = 0; i < SIM_TOTAL; i++) {
+    for (int j = 0; j < SIM_TOTAL; j++) {
+      connection[i][j] = init_connect[i][j];
+    }
+  }
   task_manager->reset();
   // Step 1: register forward and backward tasks
   for (size_t l = 0; l < model->layers.size(); l++) {
@@ -442,7 +483,7 @@ float Simulator::simulate_runtime(const FFModel* model,
     idx++;
   }
   // Assert all tasks were processed
-  assert(idx == task_manager->global_task_id);
+  // assert(idx == task_manager->global_task_id);
   // TODO add parameter synchronization time
   return sim_time;
 }

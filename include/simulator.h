@@ -18,6 +18,25 @@
 #include "ffconst.h"
 #include "config.h"
 
+
+
+#define SIM_NODES 8
+#define SIM_GPU_PER_NODE 1
+#define SIM_TOTAL (SIM_NODES * SIM_GPU_PER_NODE)
+
+// 0 no connection, 1 and 2 has preconfigured connection
+static int init_connect[SIM_TOTAL][SIM_TOTAL] =
+  {
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0}
+  };
+
 class Conv2DMeta;
 class LinearMeta;
 class Pool2DMeta;
@@ -86,7 +105,7 @@ public:
 
 class Simulator {
 public:
-  Simulator(const FFModel* model, FFHandler handler, void* base_ptr, size_t capacity);
+  Simulator(FFModel* model, FFHandler handler, void* base_ptr, size_t capacity);
   void free_all();
   void* allocate(size_t num_elements, DataType type); 
   Device* get_compute_device_by_id(int device_id);
@@ -94,6 +113,7 @@ public:
   Device* get_inter_node_comm_device_by_ids(int src_id, int dst_id);
   Device* get_gpu_to_dram_comm_device_by_id(int gpu_id);
   Device* get_dram_to_gpu_comm_device_by_id(int gpu_id);
+  float get_inter_nic_time(int src_id, int dst_id, int mes_size);
   void add_task_dependencies_with_xfer(
       SimTask* src_task, SimTask* dst_task, size_t intersect);
   float measure_op_forward_time(Op* op, const ParallelConfig& config);
@@ -122,5 +142,9 @@ public:
   Conv2DMeta* conv2d_meta;
   LinearMeta* linear_meta;
   Pool2DMeta* pool2d_meta;
+private:
+  static int connection[SIM_TOTAL][SIM_TOTAL];
+  static float latency[SIM_TOTAL][SIM_TOTAL];
+  static float bandwidth[SIM_TOTAL][SIM_TOTAL];
 };
 #endif

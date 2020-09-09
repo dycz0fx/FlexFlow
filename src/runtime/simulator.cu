@@ -18,7 +18,14 @@
 #include "realm/runtime_impl.h"
 #include "realm/cuda/cuda_module.h"
 
-Simulator::Simulator(const FFModel* model,
+int Simulator::connection[SIM_TOTAL][SIM_TOTAL];
+float Simulator::latency[SIM_TOTAL][SIM_TOTAL];
+float Simulator::bandwidth[SIM_TOTAL][SIM_TOTAL];
+
+static int origin_numNodes;
+static int origin_workersPerNode;
+
+Simulator::Simulator(FFModel* model,
                      FFHandler handler,
                      void* _base_ptr, size_t _capacity)
 : base_ptr((char*)_base_ptr), capacity(_capacity), offset(0),
@@ -34,6 +41,10 @@ warmup_times(5), repeat_times(10)
   conv2d_meta = new Conv2DMeta(handler);
   linear_meta = new LinearMeta(handler, 4096);
   pool2d_meta = new Pool2DMeta(handler);
+  origin_numNodes = model->config.numNodes;
+  origin_workersPerNode = model->config.workersPerNode;
+  model->config.numNodes = SIM_NODES;
+  model->config.workersPerNode = SIM_GPU_PER_NODE;
   int num_nodes = model->config.numNodes;
   int gpus_per_node = model->config.workersPerNode;
   total_num_devices = num_nodes * gpus_per_node;
@@ -71,6 +82,15 @@ warmup_times(5), repeat_times(10)
       }
   // Initialize task manager
   task_manager = new TaskManager(max_num_tasks);
+
+  for (int i = 0; i < SIM_TOTAL; i++) {
+    for (int j = 0; j < SIM_TOTAL; j++) {
+      connection[i][j] = init_connect[i][j];
+      latency[i][j] = 0.04; // ms
+      bandwidth[i][j] = 15.75 * 1024 * 1024.0f; // B/ms
+    }
+  }
+
 }
 
 __host__
@@ -78,7 +98,7 @@ void Simulator::strategy_search_task(const Task *task,
                                      const std::vector<PhysicalRegion> &regions,
                                      Context ctx, Runtime *runtime)
 {
-  const FFModel* model = *((FFModel**) task->args);
+  FFModel* model = *((FFModel**) task->args);
   Memory gpu_mem = Machine::MemoryQuery(Machine::get_machine())
          .only_kind(Memory::GPU_FB_MEM).best_affinity_to(task->target_proc).first();
   Realm::MemoryImpl* memImpl =
@@ -95,12 +115,25 @@ void Simulator::strategy_search_task(const Task *task,
     std::map<Op*, ParallelConfig>::const_iterator iter;
     std::map<MappingTagID, ParallelConfig> strategy_output;
     for (iter = strategies.begin(); iter != strategies.end(); iter++) {
+      printf("op_name:%s\n", iter->first->name);
       strategy_output[FFConfig::get_hash_id(std::string(iter->first->name))] = iter->second;
     }
     save_strategies_to_file(model->config.export_strategy_file, strategy_output);
   }
   // Start from data
   memFBImpl->free_bytes_local(offset, model->config.simulator_work_space_size);
+
+  for (int i = 0; i < SIM_TOTAL; i++) {
+    printf("\n");
+    for (int j = 0; j < SIM_TOTAL; j++) {
+      printf("%d ", connection[i][j]);
+    }
+  }
+
   delete(simulator);
+
+  model->config.numNodes = origin_numNodes;
+  model->config.workersPerNode = origin_workersPerNode;
+
 }
 

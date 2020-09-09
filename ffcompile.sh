@@ -12,4 +12,4 @@ echo "Use the FlexFlow protoc"
 $FF_HOME/protobuf/src/protoc -I=$FF_HOME/src/runtime --cpp_out=$FF_HOME/src/runtime $FF_HOME/src/runtime/strategy.proto
 
 cd $APP
-make -j 12
+make -j 8
