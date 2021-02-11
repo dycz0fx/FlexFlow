@@ -27,6 +27,7 @@ OUTFILE		?= resnet
 # List all the application source files here
 GEN_SRC		= resnet.cc
 GEN_GPU_SRC	= resnet.cu
+LD_FLAGS        ?= -lpmix
 
 ifndef FF_HOME
 $(error FF_HOME variable is not defined, aborting build)

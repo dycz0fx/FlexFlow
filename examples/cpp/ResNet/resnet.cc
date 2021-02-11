@@ -36,18 +36,18 @@ Tensor BottleneckBlock(FFModel& ff,
                        int out_channels,
                        int stride)
 {
-  Tensor t = ff.conv2d(input, out_channels, 1, 1, 1, 1, 0, 0, AC_MODE_NONE);
+  Tensor t = ff.conv2d(input, out_channels, 1, 1, 1, 1, 0, 0, 1, AC_MODE_NONE);
   //t = ff.batch_norm(t);
   
-  t = ff.conv2d(t, out_channels, 3, 3, stride, stride, 1, 1, AC_MODE_NONE);
+  t = ff.conv2d(t, out_channels, 3, 3, stride, stride, 1, 1, 1, AC_MODE_NONE);
   //t = ff.batch_norm(t);
   
-  t = ff.conv2d(t, 4*out_channels, 1, 1, 1, 1, 0, 0);
+  t = ff.conv2d(t, 4*out_channels, 1, 1, 1, 1, 0, 0, 1);
   //t = ff.batch_norm(t, false);
   
   if ((stride > 1) || (input.adim[2] != out_channels * 4)) {
     printf("input.adim = %d out_channels*4 = %d\n", input.adim[2], out_channels*4);
-    input = ff.conv2d(input, 4*out_channels, 1, 1, stride, stride, 0, 0, AC_MODE_NONE);
+    input = ff.conv2d(input, 4*out_channels, 1, 1, stride, stride, 0, 0, 1, AC_MODE_NONE);
     //input = ff.batch_norm(input, false);
   }
   t = ff.add(input, t);
@@ -86,7 +86,7 @@ void top_level_task(const Task* task,
   // }
   // Add layers
   Tensor t = input;
-  t = ff.conv2d(input, 64, 7, 7, 2, 2, 3, 3);
+  t = ff.conv2d(input, 64, 7, 7, 2, 2, 3, 3, 1);
   //t = ff.batch_norm(t);
   t = ff.pool2d(t, 3, 3, 2, 2, 1, 1);
 
@@ -128,7 +128,7 @@ void top_level_task(const Task* task,
     data_loader.reset();
     ff.reset_metrics();
     int iterations = data_loader.num_samples / ffConfig.batchSize;
-
+    iterations = 5;
     for (int iter = 0; iter < iterations; iter++) {
       if (resnetConfig.dataset_path.length() == 0) {
         // Only load data once for random input

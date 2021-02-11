@@ -159,6 +159,7 @@ void top_level_task(const Task* task,
     loader.reset();
     ff.reset_metrics();
     int iterations = loader.num_samples / ffConfig.batchSize;
+    iterations = 5;
     for (int iter = 0; iter < iterations; iter++) {
       // Only load data once for random input
       if (iter == 0 && epoch == 0)

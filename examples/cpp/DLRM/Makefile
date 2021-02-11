@@ -27,6 +27,7 @@ OUTFILE		?= dlrm
 # List all the application source files here
 GEN_SRC		= dlrm.cc
 GEN_GPU_SRC	= dlrm.cu
+LD_FLAGS        ?= -lpmix
 
 ifndef FF_HOME
 $(error FF_HOME variable is not defined, aborting build)

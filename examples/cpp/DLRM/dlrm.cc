@@ -159,6 +159,7 @@ void top_level_task(const Task* task,
     future.get_void_result();
   }
   log_app.print("Warmup finished...Start timer...");
+  ffConfig.epochs = 1;
   log_app.print("Num. epochs = %d", ffConfig.epochs);
   log_app.print("Num. iterations/epoch = %d", data_loader.num_samples / ffConfig.batchSize);
   printf("parameters.size() = %lu\n", ff.parameters.size());
@@ -167,6 +168,7 @@ void top_level_task(const Task* task,
     data_loader.reset();
     ff.reset_metrics();
     int iterations = data_loader.num_samples / ffConfig.batchSize;
+    iterations = 5;
     for (int iter = 0; iter < iterations; iter++) {
       if (dlrmConfig.dataset_path.length() == 0) {
         // Only load data once for random input

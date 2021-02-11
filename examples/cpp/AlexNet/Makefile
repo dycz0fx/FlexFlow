@@ -27,6 +27,7 @@ OUTFILE		?= alexnet
 # List all the application source files here
 GEN_SRC		= alexnet.cc
 GEN_GPU_SRC	= alexnet.cu
+LD_FLAGS        ?= -lpmix
 
 ifndef FF_HOME
 $(error FF_HOME variable is not defined, aborting build)

@@ -27,6 +27,7 @@ OUTFILE		?= candle_uno
 # List all the application source files here
 GEN_SRC		= candle_uno.cc
 GEN_GPU_SRC	= candle_uno.cu
+LD_FLAGS        ?= -lpmix
 
 ifndef FF_HOME
 $(error FF_HOME variable is not defined, aborting build)

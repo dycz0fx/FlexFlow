@@ -27,6 +27,7 @@ OUTFILE		?= inception
 # List all the application source files here
 GEN_SRC		= inception.cc
 GEN_GPU_SRC	= inception.cu
+LD_FLAGS        ?= -lpmix
 
 ifndef FF_HOME
 $(error FF_HOME variable is not defined, aborting build)

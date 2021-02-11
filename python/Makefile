@@ -64,7 +64,7 @@ GEN_SRC		  ?= main.cc flexflow_c.cc flexflow_dataloader.cc # .cc files
 GEN_GPU_SRC	  ?= flexflow_dataloader.cu # .cu files
 
 CC_FLAGS	  ?= -DBINDINGS_AUGMENT_PYTHONPATH -DFF_USE_PYTHON 
-
+LD_FLAGS        ?= -lpmix
 ifeq ($(strip $(FF_ENABLE_DEBUG)), 1)
 CC_FLAGS += -DFF_DEBUG
 NVCC_FLAGS += -DFF_DEBUG
